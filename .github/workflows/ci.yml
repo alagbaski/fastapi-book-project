@@ -43,4 +43,3 @@ jobs:
       - name: Run Tests
         run: |
           docker run --rm hello-world
-
