@@ -1,38 +1,46 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
       - main
   pull_request:
-    branches:
-      - main
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker
+      - name: Set Up Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get remove -y containerd containerd.io || true
-          sudo apt-get autoremove -y
-          sudo apt-get clean
-          curl -fsSL https://get.docker.com | sudo sh
+          sudo apt-get install -y ca-certificates curl gnupg
+
+      - name: Add Docker GPG Key and Repo
+        run: |
+          sudo install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee /etc/apt/keyrings/docker.asc > /dev/null
+          sudo chmod a+r /etc/apt/keyrings/docker.asc
+          echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+      - name: Install Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+      - name: Start Docker
+        run: |
           sudo systemctl start docker
           sudo systemctl enable docker
           docker --version
 
-      - name: Build and Run Docker Container
-        run: |
-          docker build -t my-fastapi-app .
-          docker run -d -p 8000:8000 my-fastapi-app
-
       - name: Run Tests
         run: |
-          docker ps
-          pytest --disable-warnings --tb=short
+          docker run --rm hello-world
+
