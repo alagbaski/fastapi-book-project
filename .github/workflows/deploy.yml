@@ -22,11 +22,11 @@ jobs:
 
       - name: Deploy FastAPI to EC2
         run: |
-          ssh ubuntu@${{ secrets.AWS_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ secrets.AWS_HOST }} << 'EOF'
             # Stop and remove existing container
             docker stop fastapi-app || true
             docker rm fastapi-app || true
-            
+
             # Pull the latest code
             cd ~/my-fastapi-app
             git pull origin main
