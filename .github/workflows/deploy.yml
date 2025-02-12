@@ -13,19 +13,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker
+      - name: Set up SSH Key
         run: |
-          sudo apt-get update
-          sudo apt-get remove -y containerd containerd.io docker-ce docker-ce-cli || true
-          sudo apt-get autoremove -y
-          sudo apt-get clean
-          curl -fsSL https://get.docker.com | sudo sh
-          sudo systemctl start docker
-          sudo systemctl enable docker
-          docker --version
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.AWS_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy FastAPI App
+      - name: Deploy FastAPI to EC2
         run: |
-          docker build -t my-fastapi-app .
-          docker run -d -p 8000:8000 my-fastapi-app
+          ssh ubuntu@${{ secrets.AWS_HOST }} << 'EOF'
+            # Stop and remove existing container
+            docker stop fastapi-app || true
+            docker rm fastapi-app || true
+            
+            # Pull the latest code
+            cd ~/my-fastapi-app
+            git pull origin main
 
+            # Build and run FastAPI in a Docker container
+            docker build -t my-fastapi-app .
+            docker run -d --name fastapi-app -p 8000:8000 my-fastapi-app
+          EOF
