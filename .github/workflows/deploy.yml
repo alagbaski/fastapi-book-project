@@ -37,8 +37,8 @@ jobs:
             sudo apt install -y docker.io docker-compose
 
             # Use the correct command for docker-compose
-            docker-compose down
-            docker-compose up --build -d
+            sudo docker-compose down
+            sudo docker-compose up --build -d
 
             # Restart Nginx to apply changes
             sudo systemctl restart nginx
