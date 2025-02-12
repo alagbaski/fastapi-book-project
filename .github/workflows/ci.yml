@@ -1,45 +1,26 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
-on:
-  push:
+on: 
+  pull_request:
     branches:
       - main
-  pull_request:
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set Up Docker
-        uses: docker/setup-buildx-action@v2
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.9
 
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ca-certificates curl gnupg
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
 
-      - name: Add Docker GPG Key and Repo
-        run: |
-          sudo install -m 0755 -d /etc/apt/keyrings
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee /etc/apt/keyrings/docker.asc > /dev/null
-          sudo chmod a+r /etc/apt/keyrings/docker.asc
-          echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-      - name: Install Docker
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-
-      - name: Start Docker
-        run: |
-          sudo systemctl start docker
-          sudo systemctl enable docker
-          docker --version
-
-      - name: Run Tests
-        run: |
-          docker run --rm hello-world
+    - name: Run tests
+      run: pytest
