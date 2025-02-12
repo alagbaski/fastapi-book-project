@@ -22,10 +22,23 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
           ssh -o StrictHostKeyChecking=no -i private_key.pem $EC2_USER@$EC2_PUBLIC_IP << 'EOF'
+            # Ensure the application directory exists
             cd fastapi-app || git clone https://github.com/alagbaski/fastapi-book-project.git fastapi-app
             cd fastapi-app
+
+            # Pull latest changes
             git pull origin main
+
+            # Ensure Docker and Docker Compose are installed
+            sudo apt update
+            sudo apt install -y docker.io docker-compose
+
+            # Stop running containers
             docker compose down
+
+            # Build and restart the services
             docker compose up --build -d
+
+            # Restart Nginx
             sudo systemctl restart nginx
           EOF
