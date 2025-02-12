@@ -29,9 +29,6 @@ jobs:
             
             cd fastapi-app
 
-            # Pull the latest changes
-            git pull origin main
-
             # Ensure Docker and Docker Compose are installed
             sudo apt update
             sudo apt install -y docker.io docker-compose
