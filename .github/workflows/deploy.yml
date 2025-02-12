@@ -1,4 +1,4 @@
-name: Deployment Pipeline
+name: Deploy FastAPI App
 
 on:
   push:
@@ -8,15 +8,20 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Build and Push Docker Image
+      - name: Set up Docker
+        run: |
+          sudo apt update
+          sudo apt install -y docker.io
+          sudo systemctl start docker
+
+      - name: Build and run container
         run: |
           docker build -t fastapi-app .
-          docker run -d -p 8000:8000 fastapi-app
-
-      - name: Deploy to Server
-        run: |
-          ssh ubuntu@35.183.206.198 'docker pull fastapi-app && docker run -d -p 8000:8000 fastapi-app'
+          docker stop fastapi-app || true
+          docker rm fastapi-app || true
+          docker run -d -p 8000:8000 --name fastapi-app fastapi-app
