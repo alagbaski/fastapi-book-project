@@ -15,8 +15,8 @@ jobs:
 
       - name: Set up SSH Key
         run: |
-          mkdir -p ~/.ssh || true
-          echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          mkdir -p ~/.ssh
+          printf "%s" "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 400 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.AWS_HOST }} >> ~/.ssh/known_hosts
 
