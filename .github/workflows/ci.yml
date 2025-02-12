@@ -1,26 +1,38 @@
 name: CI Pipeline
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
+      - name: Set up Docker
         run: |
-          pip install -r requirements.txt
+          sudo apt-get update
+          sudo apt-get remove -y containerd containerd.io || true
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+          curl -fsSL https://get.docker.com | sudo sh
+          sudo systemctl start docker
+          sudo systemctl enable docker
+          docker --version
 
-      - name: Run tests
+      - name: Build and Run Docker Container
         run: |
-          pytest
+          docker build -t my-fastapi-app .
+          docker run -d -p 8000:8000 my-fastapi-app
+
+      - name: Run Tests
+        run: |
+          docker ps
+          pytest --disable-warnings --tb=short
