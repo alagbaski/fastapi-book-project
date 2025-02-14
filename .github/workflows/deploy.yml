@@ -45,5 +45,5 @@ jobs:
             sudo docker-compose up --build -d
 
             # Restart Nginx to apply changes (if Nginx is installed on the host)
-            sudo systemctl restart nginx || true
+            #sudo systemctl restart nginx || true
           EOF
