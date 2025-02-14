@@ -19,24 +19,31 @@ jobs:
           EC2_PUBLIC_IP: ${{ secrets.EC2_PUBLIC_IP }}
           EC2_USER: ubuntu
         run: |
+          # Save the SSH private key to a file
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
+
+          # SSH into the EC2 instance and deploy the app
           ssh -o StrictHostKeyChecking=no -i private_key.pem $EC2_USER@$EC2_PUBLIC_IP << 'EOF'
-            # Ensure the repository is cloned properly
+            # Navigate to the app directory (create it if it doesn't exist)
             if [ ! -d "fastapi-app" ]; then
               git clone https://github.com/alagbaski/fastapi-book-project.git fastapi-app
             fi
-            
             cd fastapi-app
+
+            # Pull the latest changes from the repository
+            git pull origin main
 
             # Ensure Docker and Docker Compose are installed
             sudo apt update
             sudo apt install -y docker.io docker-compose
 
-            # Use the correct command for docker-compose
-            sudo docker-compose down
+            # Stop and remove existing containers (if any)
+            sudo docker-compose down || true
+
+            # Build and start the containers in detached mode
             sudo docker-compose up --build -d
 
-            # Restart Nginx to apply changes
-            sudo systemctl restart nginx
+            # Restart Nginx to apply changes (if Nginx is installed on the host)
+            sudo systemctl restart nginx || true
           EOF
